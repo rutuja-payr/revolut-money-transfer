@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CreateAccountDTOGsonTypeConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">money-tranfser</a> &gt; <a href="index.source.html" class="el_package">com.revolut.transfers.account.config.typeconverters</a> &gt; <span class="el_source">CreateAccountDTOGsonTypeConverter.java</span></div><h1>CreateAccountDTOGsonTypeConverter.java</h1><pre class="source lang-java linenums">package com.revolut.transfers.account.config.typeconverters;
+
+import com.google.gson.*;
+import com.revolut.transfers.account.infrastructure.TransferController;
+
+import javax.money.CurrencyUnit;
+import java.lang.reflect.Type;
+
+<span class="fc" id="L9">public class CreateAccountDTOGsonTypeConverter implements JsonSerializer&lt;TransferController.CreateAccountDTO&gt;, JsonDeserializer&lt;TransferController.CreateAccountDTO&gt; {</span>
+
+    public static final String INITIAL_BALANCE_FIELD = &quot;initialBalance&quot;;
+    public static final String CURRENCY_FIELD = &quot;currency&quot;;
+
+    @Override
+    public JsonElement serialize(TransferController.CreateAccountDTO src, Type srcType, JsonSerializationContext context) {
+<span class="nc" id="L16">        JsonObject jsonObject = new JsonObject();</span>
+<span class="nc" id="L17">        jsonObject.add(CURRENCY_FIELD, context.serialize(src.getCurrency()));</span>
+<span class="nc" id="L18">        src.getInitialAmount().ifPresent(initialValue -&gt; jsonObject.addProperty(INITIAL_BALANCE_FIELD, initialValue));</span>
+<span class="nc" id="L19">        return jsonObject;</span>
+    }
+
+    @Override
+    public TransferController.CreateAccountDTO deserialize(JsonElement json, Type type, JsonDeserializationContext context)
+            throws JsonParseException {
+<span class="fc" id="L25">        JsonObject o = json.getAsJsonObject();</span>
+<span class="fc bfc" id="L26" title="All 2 branches covered.">        if (o.has(INITIAL_BALANCE_FIELD)) {</span>
+<span class="fc" id="L27">            return new TransferController.CreateAccountDTO(</span>
+<span class="fc" id="L28">                    context.deserialize(o.get(CURRENCY_FIELD), CurrencyUnit.class),</span>
+<span class="fc" id="L29">                    o.get(INITIAL_BALANCE_FIELD).getAsBigDecimal());</span>
+        } else {
+
+<span class="fc" id="L32">            return new TransferController.CreateAccountDTO(</span>
+<span class="fc" id="L33">                    context.deserialize(o.get(CURRENCY_FIELD), CurrencyUnit.class));</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

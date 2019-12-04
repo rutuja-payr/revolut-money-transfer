@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransferController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">money-tranfser</a> &gt; <a href="index.source.html" class="el_package">com.revolut.transfers.account.infrastructure</a> &gt; <span class="el_source">TransferController.java</span></div><h1>TransferController.java</h1><pre class="source lang-java linenums">package com.revolut.transfers.account.infrastructure;
+
+import com.google.gson.Gson;
+import com.revolut.transfers.account.domain.Account;
+import com.revolut.transfers.account.domain.AccountId;
+import com.revolut.transfers.account.domain.TransferService;
+import spark.Request;
+import spark.Response;
+
+import javax.money.CurrencyUnit;
+import javax.money.MonetaryAmount;
+import java.math.BigDecimal;
+import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+public class TransferController {
+
+<span class="fc" id="L19">    public TransferController(Gson gson, TransferService transferService) {</span>
+<span class="fc" id="L20">        this.transferService = transferService;</span>
+<span class="fc" id="L21">        this.gson = gson;</span>
+<span class="fc" id="L22">    }</span>
+
+    public void makeTransfer(Request request, Response response) {
+<span class="fc" id="L25">        AccountId fromAcountId = AccountId.exisitingId(Long.parseLong(request.params(&quot;id&quot;)));</span>
+<span class="fc" id="L26">        AccountId toAcountId = AccountId.exisitingId(Long.parseLong(request.params(&quot;transferToId&quot;)));</span>
+
+<span class="fc" id="L28">        MonetaryAmount amount = gson.fromJson(request.body(), MonetaryAmount.class);</span>
+<span class="fc" id="L29">        transferService.transfer(fromAcountId, toAcountId, amount);</span>
+<span class="fc" id="L30">        response.status(204);</span>
+<span class="fc" id="L31">    }</span>
+
+    public Account createAccount(Request request, Response response) {
+<span class="fc" id="L34">        CreateAccountDTO accountData = gson.fromJson(request.body(), CreateAccountDTO.class);</span>
+<span class="fc" id="L35">        response.status(201);</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (accountData.getInitialAmount().isPresent()) {</span>
+<span class="fc" id="L37">            return transferService.createAccountWithInitialBalance(accountData.getCurrency(), accountData.getInitialAmount().get());</span>
+        } else {
+<span class="fc" id="L39">            return transferService.createAccount(accountData.getCurrency());</span>
+        }
+    }
+
+    public Account retrieveAccount(Request request, Response response) {
+<span class="fc" id="L44">        AccountId toRetrieveId = AccountId.exisitingId(Long.parseLong(request.params(&quot;id&quot;)));</span>
+<span class="fc" id="L45">        return transferService.retriveAccount(toRetrieveId);</span>
+    }
+
+    public void deleteAccount(Request request, Response response) {
+<span class="fc" id="L49">        AccountId toDeleteId = AccountId.exisitingId(Long.parseLong(request.params(&quot;id&quot;)));</span>
+<span class="fc" id="L50">        transferService.deleteAccount(toDeleteId);</span>
+<span class="fc" id="L51">        response.status(204);</span>
+<span class="fc" id="L52">    }</span>
+
+    public static class CreateAccountDTO {
+<span class="fc" id="L55">        public CreateAccountDTO(CurrencyUnit currency, BigDecimal initialAmount) {</span>
+<span class="fc" id="L56">            checkNotNull(currency);</span>
+<span class="fc" id="L57">            this.currency = currency;</span>
+<span class="fc" id="L58">            this.initialAmount = initialAmount;</span>
+<span class="fc" id="L59">        }</span>
+
+        public CreateAccountDTO(CurrencyUnit currency) {
+<span class="fc" id="L62">            this(checkNotNull(currency), null);</span>
+<span class="fc" id="L63">        }</span>
+
+        public CurrencyUnit getCurrency() {
+<span class="fc" id="L66">            return currency;</span>
+        }
+
+        public Optional&lt;BigDecimal&gt; getInitialAmount() {
+<span class="fc" id="L70">            return Optional.ofNullable(initialAmount);</span>
+        }
+
+        private CurrencyUnit currency;
+        private BigDecimal initialAmount;
+    }
+
+    private final TransferService transferService;
+    private final Gson gson;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

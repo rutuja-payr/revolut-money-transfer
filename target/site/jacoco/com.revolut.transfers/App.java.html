@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>App.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">money-tranfser</a> &gt; <a href="index.source.html" class="el_package">com.revolut.transfers</a> &gt; <span class="el_source">App.java</span></div><h1>App.java</h1><pre class="source lang-java linenums">package com.revolut.transfers;
+
+
+import com.google.gson.Gson;
+import com.revolut.transfers.account.config.TransfersConfig;
+import com.revolut.transfers.account.domain.exceptions.AccountNotFoundException;
+import com.revolut.transfers.account.infrastructure.TransferController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import spark.Request;
+import spark.Response;
+
+import static spark.Spark.*;
+
+<span class="nc" id="L15">public class App {</span>
+
+    public static void main(String[] args) {
+<span class="fc" id="L18">        TransferController controller = TransfersConfig.defaultTransfersConfig();</span>
+<span class="fc" id="L19">        Gson gson = TransfersConfig.gson();</span>
+
+<span class="fc" id="L21">        path(&quot;/api&quot;, () -&gt; {</span>
+<span class="fc" id="L22">            before(&quot;/*&quot;, (request, response) -&gt; log.info(&quot;Received api call&quot;));</span>
+<span class="fc" id="L23">            before(&quot;/*&quot;, (request, response) -&gt; response.type(&quot;application/json&quot;));</span>
+<span class="fc" id="L24">            exception(AccountNotFoundException.class, (exception, request, response) -&gt; {</span>
+<span class="nc" id="L25">                response.status(404);</span>
+<span class="nc" id="L26">                response.type(&quot;application/json&quot;);</span>
+<span class="nc" id="L27">                response.body(&quot;{\&quot;message\&quot;:\&quot;&quot; + exception.getMessage() + &quot;\&quot;}&quot;);</span>
+<span class="nc" id="L28">            });</span>
+<span class="fc" id="L29">            post(&quot;/account/:id/transferTo/:transferToId&quot;, (Request request, Response response) -&gt; {</span>
+<span class="fc" id="L30">                controller.makeTransfer(request, response);</span>
+<span class="fc" id="L31">                return &quot;&quot;;</span>
+            });
+<span class="fc" id="L33">            post(&quot;/account&quot;, (Request request, Response response) -&gt; {</span>
+<span class="fc" id="L34">                return controller.createAccount(request, response);</span>
+<span class="fc" id="L35">            }, gson::toJson);</span>
+<span class="fc" id="L36">            get(&quot;/account/:id&quot;, (Request request, Response response) -&gt; {</span>
+<span class="fc" id="L37">                return controller.retrieveAccount(request, response);</span>
+<span class="fc" id="L38">            }, gson::toJson);</span>
+<span class="fc" id="L39">            delete(&quot;/account/:id&quot;, (Request request, Response response) -&gt; {</span>
+<span class="fc" id="L40">                controller.deleteAccount(request, response);</span>
+<span class="fc" id="L41">                return &quot;&quot;;</span>
+<span class="fc" id="L42">            }, gson::toJson);</span>
+<span class="fc" id="L43">        });</span>
+<span class="fc" id="L44">    }</span>
+
+<span class="fc" id="L46">    private final static Logger log = LoggerFactory.getLogger(App.class);</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

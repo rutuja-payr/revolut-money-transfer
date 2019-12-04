@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HibernateAccountRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">money-tranfser</a> &gt; <a href="index.source.html" class="el_package">com.revolut.transfers.account.infrastructure</a> &gt; <span class="el_source">HibernateAccountRepository.java</span></div><h1>HibernateAccountRepository.java</h1><pre class="source lang-java linenums">package com.revolut.transfers.account.infrastructure;
+
+import com.revolut.transfers.account.config.EntityManagerProvider;
+import com.revolut.transfers.account.domain.Account;
+import com.revolut.transfers.account.domain.AccountId;
+import com.revolut.transfers.account.domain.AccountRepository;
+
+import javax.persistence.EntityManager;
+import java.math.BigInteger;
+import java.util.Optional;
+
+import static com.revolut.transfers.account.infrastructure.TransactionUtil.returnTransactionResult;
+
+public class HibernateAccountRepository implements AccountRepository {
+
+<span class="fc" id="L16">    public HibernateAccountRepository(EntityManagerProvider sessionProvider) {</span>
+<span class="fc" id="L17">        this.sessionProvider = sessionProvider;</span>
+<span class="fc" id="L18">        returnTransactionResult(() -&gt; getEntityManager().createNativeQuery(&quot;CREATE SEQUENCE ACCOUNT_SEQ&quot;).executeUpdate());</span>
+<span class="fc" id="L19">    }</span>
+
+    @Override
+    public Optional&lt;Account&gt; findById(AccountId accountId) {
+<span class="fc" id="L23">        EntityManager manager = getEntityManager();</span>
+<span class="fc" id="L24">        Account retrieved = manager.find(Account.class, accountId);</span>
+<span class="fc" id="L25">        return Optional.ofNullable(retrieved);</span>
+    }
+
+    @Override
+    public void add(Account p) {
+<span class="fc" id="L30">        EntityManager manager = getEntityManager();</span>
+<span class="fc" id="L31">        manager.persist(p);</span>
+<span class="fc" id="L32">    }</span>
+
+    @Override
+    public void delete(Account account) {
+<span class="fc" id="L36">        EntityManager manager = getEntityManager();</span>
+<span class="fc" id="L37">        account = manager.merge(account);</span>
+<span class="fc" id="L38">        manager.remove(account);</span>
+<span class="fc" id="L39">    }</span>
+
+    @Override
+    public AccountId nextId() {
+<span class="fc" id="L43">        BigInteger newId = (BigInteger) getEntityManager().createNativeQuery(&quot;SELECT NEXTVAL('ACCOUNT_SEQ') as account_id&quot;).getSingleResult();</span>
+<span class="fc" id="L44">        return AccountId.exisitingId(newId.longValue());</span>
+
+    }
+
+    private EntityManager getEntityManager() {
+<span class="fc" id="L49">        return sessionProvider.session();</span>
+    }
+
+    private EntityManagerProvider sessionProvider;
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

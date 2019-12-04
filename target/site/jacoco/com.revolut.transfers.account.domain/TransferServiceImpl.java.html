@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TransferServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">money-tranfser</a> &gt; <a href="index.source.html" class="el_package">com.revolut.transfers.account.domain</a> &gt; <span class="el_source">TransferServiceImpl.java</span></div><h1>TransferServiceImpl.java</h1><pre class="source lang-java linenums">package com.revolut.transfers.account.domain;
+
+import com.revolut.transfers.account.domain.exceptions.AccountNotFoundException;
+import com.revolut.transfers.account.domain.exceptions.TransferBetweenSameAccountException;
+import org.javamoney.moneta.Money;
+
+import javax.money.CurrencyUnit;
+import javax.money.MonetaryAmount;
+import java.math.BigDecimal;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+public class TransferServiceImpl implements TransferService {
+
+<span class="fc" id="L15">    public TransferServiceImpl(AccountRepository accountRepository) {</span>
+<span class="fc" id="L16">        this.accountRepository = accountRepository;</span>
+<span class="fc" id="L17">    }</span>
+
+    @Override
+    public void transfer(AccountId from, AccountId to, MonetaryAmount amount) {
+<span class="fc" id="L21">        checkNotNull(from);</span>
+<span class="fc" id="L22">        checkNotNull(to);</span>
+<span class="fc" id="L23">        checkNotNull(amount);</span>
+<span class="fc" id="L24">        checkNotSameAccounts(from, to);</span>
+
+<span class="pc" id="L26">        Account sourceAccount = accountRepository.findById(from).orElseThrow(() -&gt; new AccountNotFoundException(from));</span>
+<span class="pc" id="L27">        Account destinationAccount = accountRepository.findById(to).orElseThrow(() -&gt; new AccountNotFoundException(to));</span>
+
+<span class="fc" id="L29">        sourceAccount.withdraw(amount);</span>
+<span class="fc" id="L30">        destinationAccount.deposit(amount);</span>
+<span class="fc" id="L31">    }</span>
+
+    @Override
+    public Account createAccount(CurrencyUnit accountCurrencyUnit) {
+<span class="fc" id="L35">        checkNotNull(accountCurrencyUnit);</span>
+<span class="fc" id="L36">        Account account = new Account(accountRepository.nextId(), accountCurrencyUnit);</span>
+<span class="fc" id="L37">        accountRepository.add(account);</span>
+<span class="fc" id="L38">        return account;</span>
+    }
+
+    @Override
+    public Account createAccountWithInitialBalance(CurrencyUnit accountCurrencyUnit, BigDecimal initialBalance) {
+<span class="fc" id="L43">        checkNotNull(accountCurrencyUnit);</span>
+<span class="fc" id="L44">        checkNotNull(initialBalance);</span>
+<span class="fc" id="L45">        Account account = new Account(accountRepository.nextId(), accountCurrencyUnit);</span>
+<span class="fc" id="L46">        account.deposit(Money.of(initialBalance, accountCurrencyUnit));</span>
+<span class="fc" id="L47">        accountRepository.add(account);</span>
+<span class="fc" id="L48">        return account;</span>
+    }
+
+    @Override
+    public Account retriveAccount(AccountId accountId) {
+<span class="fc" id="L53">        checkNotNull(accountId);</span>
+<span class="pc" id="L54">        return accountRepository.findById(accountId).orElseThrow(() -&gt; new AccountNotFoundException(accountId));</span>
+    }
+
+    @Override
+    public void deleteAccount(AccountId accountId) {
+<span class="fc" id="L59">        checkNotNull(accountId);</span>
+<span class="pc" id="L60">        Account account = accountRepository.findById(accountId).orElseThrow(() -&gt; new AccountNotFoundException(accountId));</span>
+<span class="fc" id="L61">        accountRepository.delete(account);</span>
+<span class="fc" id="L62">    }</span>
+
+    private final AccountRepository accountRepository;
+
+    private void checkNotSameAccounts(AccountId from, AccountId to) {
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        if (from.equals(to)) {</span>
+<span class="fc" id="L68">            throw new TransferBetweenSameAccountException(from);</span>
+        }
+<span class="fc" id="L70">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
